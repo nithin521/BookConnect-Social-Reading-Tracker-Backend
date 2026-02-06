@@ -3,29 +3,25 @@ const axios = require("axios");
 require("dotenv").config();
 const mysql = require("mysql2");
 
-function copyQuery(query) {
+function copyQuery(query, values = []) {
   return new Promise((resolve, reject) => {
     const connection = mysql.createConnection(
-      process.env.MYSQL_CONNECTION_STRING
+      process.env.MYSQL_CONNECTION_STRING,
     );
-    connection.query(query, (err, data) => {
-      if (err) {
-        reject(err);
-      } else {
-        resolve(data);
-      }
+
+    connection.query(query, values, (err, data) => {
+      connection.end();
+
+      if (err) reject(err);
+      else resolve(data);
     });
-    connection.end();
   });
 }
 
-
 async function insertData(val) {
-  console.log(val);
-  const connection = await pool.getConnection();
   try {
     let response = await axios.get(
-      `https://www.googleapis.com/books/v1/volumes?q=${val}&max_results=10&key=AIzaSyDpaFwXyH2L8HHmVw_brmCXWJL7lf6j2UQ`
+      `https://www.googleapis.com/books/v1/volumes?q=${val}&maxResults=10&key=AIzaSyB_gz-myEGmcGAbSoRCXrFrln2GP1ECr1M`,
     );
     let data = await response?.data?.items;
     let promises = data?.map(async (ele) => {
@@ -74,7 +70,7 @@ async function insertData(val) {
       if (genre === undefined) genre = "General";
       let [copyGenre] = await copyQuery(
         `SELECT genre_id FROM genres WHERE genre_name = ?`,
-        [genre]
+        [genre],
       );
       let genre_id;
       if (copyGenre?.length) {
@@ -83,13 +79,13 @@ async function insertData(val) {
         await copyQuery(`INSERT INTO genres (genre_name) VALUES (?)`, [genre]);
         let [newGenre] = await copyQuery(
           `SELECT genre_id FROM genres WHERE genre_name = ?`,
-          [genre]
+          [genre],
         );
         genre_id = newGenre.genre_id;
       }
       let duplicants = await copyQuery(
         `select * from books where title=? and author=?`,
-        [title, author]
+        [title, author],
       );
       if (!duplicants?.length) {
         title &&
@@ -108,7 +104,7 @@ async function insertData(val) {
               genre_id,
               admin_id,
               formatted_date,
-            ]
+            ],
           ));
       }
     });
@@ -128,35 +124,38 @@ async function insertData(val) {
   );
   `);
     let searchedBooks = await copyQuery(
-      `select * from books where title like '%${val}%'`
+      `select * from books where title like '%${val}%'`,
     );
     console.log(searchedBooks);
     return searchedBooks;
   } catch (err) {
     console.log(err);
-  } finally {
-    connection.release();
   }
 }
 
 const getUserBooks = async (req, res) => {
-  let connection = await pool.getConnection();
-  insertData("Database");
   try {
-    let retriveBooks = `select * from bookdb.books; `;
-    let retrieveGenre = `select g.genre_id,count(g.genre_id),g.genre_name from genres g join books b on b.genre_id=g.genre_id group by g.genre_id having count(g.genre_id)>=3;`;
+    // insertData("Database");
+
+    const retriveBooks = `SELECT * FROM bookdb.books`;
+    const retrieveGenre = `
+      SELECT g.genre_id, COUNT(g.genre_id), g.genre_name
+      FROM genres g
+      JOIN books b ON b.genre_id = g.genre_id
+      GROUP BY g.genre_id
+      HAVING COUNT(g.genre_id) >= 3
+    `;
+
     const [bookResult, genreResult] = await Promise.all([
-      connection.query(retriveBooks),
-      connection.query(retrieveGenre),
+      copyQuery(retriveBooks),
+      copyQuery(retrieveGenre),
     ]);
-    res.json({ book: bookResult, genre: genreResult[0] });
+    console.log(bookResult.length);
+
+    res.json({ book: bookResult, genre: genreResult });
   } catch (error) {
     console.error("Error in getUserBooks:", error);
     res.status(500).send("Internal Server Error");
-  } finally {
-    if (connection) {
-      connection.release();
-    }
   }
 };
 
