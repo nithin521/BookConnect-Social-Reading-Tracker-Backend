@@ -91,7 +91,7 @@ async function insertData(val) {
           image_link &&
           description !== "NO description" &&
           (await copyQuery(
-            `INSERT INTO books(title,author,rating,book_desc,pageCount,image_link,genre_id,published_date) VALUES (?,?,?,?,?,?,?,?,?)`,
+            `INSERT INTO books(title,author,rating,book_desc,pageCount,image_link,genre_id,published_date) VALUES (?,?,?,?,?,?,?,?)`,
             [
               title,
               author,
