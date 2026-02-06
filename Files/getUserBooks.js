@@ -93,7 +93,7 @@ async function insertData(val) {
           image_link &&
           description !== "NO description" &&
           (await copyQuery(
-            `INSERT INTO bookdb.books(title,author,rating,book_desc,pageCount,image_link,genre_id,admin_id,published_date) VALUES (?,?,?,?,?,?,?,?,?)`,
+            `INSERT INTO books(title,author,rating,book_desc,pageCount,image_link,genre_id,admin_id,published_date) VALUES (?,?,?,?,?,?,?,?,?)`,
             [
               title,
               author,
@@ -137,7 +137,7 @@ const getUserBooks = async (req, res) => {
   try {
     // insertData("Database");
 
-    const retriveBooks = `SELECT * FROM bookdb.books`;
+    const retriveBooks = `SELECT * FROM books`;
     const retrieveGenre = `
       SELECT g.genre_id, COUNT(g.genre_id), g.genre_name
       FROM genres g
