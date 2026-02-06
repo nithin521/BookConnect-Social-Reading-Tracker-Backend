@@ -140,7 +140,7 @@ app.post("/", async (req, res) => {
   console.log(input);
   let result;
   let response = await copyQuery(
-    `select * from bookdb.books where title like '%${input}%' or author like '%${input}%'`,
+    `select * from books where title like '%${input}%' or author like '%${input}%'`,
   );
   if (response.length < 4) {
     result = await insertData(input);
@@ -156,7 +156,7 @@ app.post("/", async (req, res) => {
 app.post("/genre/:genreid", async (req, res) => {
   let genre_name = req.params.genreid;
   let response = await copyQuery(
-    ` select * from bookdb.books b join bookdb.genres g on b.genre_id=g.genre_id where g.genre_name="${genre_name}";`,
+    ` select * from books b join genres g on b.genre_id=g.genre_id where g.genre_name="${genre_name}";`,
   );
   res.status(200).json(response);
 });
