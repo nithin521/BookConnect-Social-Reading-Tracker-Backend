@@ -34,9 +34,7 @@ async function insertData(val) {
         genre = ele.volumeInfo?.categories?.[0],
         pageCount,
       } = ele.volumeInfo;
-      let randomIndex = Math.floor(Math.random() * 3);
-      let admins = [100, 101, 102];
-      let admin_id = admins[randomIndex];
+     
       let ratings = (Math.random() * (5.0 - 0.0)).toFixed(2);
       let formatted_date =
         published_date !== undefined ? `${published_date}` : "2000-01-01"; //since api is giving undefined for some data
@@ -93,7 +91,7 @@ async function insertData(val) {
           image_link &&
           description !== "NO description" &&
           (await copyQuery(
-            `INSERT INTO books(title,author,rating,book_desc,pageCount,image_link,genre_id,admin_id,published_date) VALUES (?,?,?,?,?,?,?,?,?)`,
+            `INSERT INTO books(title,author,rating,book_desc,pageCount,image_link,genre_id,published_date) VALUES (?,?,?,?,?,?,?,?,?)`,
             [
               title,
               author,
@@ -102,7 +100,6 @@ async function insertData(val) {
               pageCount,
               image_link,
               genre_id,
-              admin_id,
               formatted_date,
             ],
           ));
