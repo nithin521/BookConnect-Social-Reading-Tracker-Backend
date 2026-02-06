@@ -287,6 +287,25 @@ app.post("/api/books/search", async (req, res) => {
       limit = 12,
     } = req.body;
 
+    // 🔑 Phase 1: Check if DB has ANY books for the search query
+    if (query) {
+      const seedCheckResult = await copyExecute({
+        sql: `
+    SELECT COUNT(*) AS total
+    FROM books
+    WHERE title LIKE ? OR author LIKE ?
+  `,
+        first: `%${query}%`,
+        second: `%${query}%`,
+      });
+
+      // ❌ DB empty for this query → fetch from API
+      if (seedCheckResult[0].total <= 4) {
+        console.log("DB empty for query, seeding from API:", query);
+        await insertData(query);
+      }
+    }
+
     let whereConditions = [];
 
     // Search query
@@ -394,6 +413,7 @@ app.post("/api/books/search", async (req, res) => {
     });
   }
 });
+
 app.get("/api/books/filters", async (req, res) => {
   try {
     // Genres
