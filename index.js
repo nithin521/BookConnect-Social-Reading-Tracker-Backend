@@ -194,6 +194,13 @@ app.get("/logout", (req, res) => {
   });
 });
 
+// test method
+app.get("/test-insert", async (req, res) => {
+  await insertData("harry potter");
+  res.send("Inserted");
+});
+
+
 //Adding Book to a Shelf
 app.post("/userPreference", async (req, res) => {
   try {
